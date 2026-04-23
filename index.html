@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>暇っち</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html { height: 100%; height: -webkit-fill-available; }
+    body {
+      height: 100%; height: -webkit-fill-available;
+      font-family: -apple-system, 'Hiragino Sans', BlinkMacSystemFont, sans-serif;
+      background: #F7F8FA;
+      overflow: hidden;
+      overscroll-behavior: none;
+    }
+    #root { height: 100%; }
+
+    .scroll::-webkit-scrollbar { display: none; }
+    .scroll { -ms-overflow-style: none; scrollbar-width: none; }
+
+    button, input { font-family: inherit; -webkit-appearance: none; cursor: pointer; }
+    input { cursor: text; }
+
+    .tap { transition: opacity 0.1s, transform 0.1s; }
+    .tap:active { opacity: 0.6; transform: scale(0.97); }
+
+    @keyframes sheetUp {
+      from { transform: translateY(100%); }
+      to   { transform: translateY(0); }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.95) translateY(6px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
