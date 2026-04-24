@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Avatar } from '../components/Avatar'
-import { createGroup, joinByCode } from '../db'
+import { createGroup, joinByCode, leaveGroup } from '../db'
 import { saveGroupId } from '../user'
 
 export function GroupScreen({ user, groups, currentGroupId, onGroupAdded, onSwitchGroup }) {
@@ -10,9 +10,20 @@ export function GroupScreen({ user, groups, currentGroupId, onGroupAdded, onSwit
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
   const [copied, setCopied]     = useState(null) // group id
+  const [removing, setRemoving] = useState(null) // { groupId, userId }
 
   function getInviteUrl(group) {
     return `${window.location.origin}${window.location.pathname}?code=${group.invite_code}`
+  }
+
+  async function handleRemoveMember(groupId, memberId, memberName) {
+    if (!confirm(`「${memberName}」をグループから削除しますか？`)) return
+    setRemoving({ groupId, userId: memberId })
+    try {
+      await leaveGroup(groupId, memberId)
+      onGroupAdded({ ...groups.find(g => g.id === groupId), members: groups.find(g => g.id === groupId)?.members.filter(m => m.user_id !== memberId) })
+    } catch { alert('削除に失敗しました') }
+    setRemoving(null)
   }
 
   function copyInvite(group) {
@@ -96,15 +107,21 @@ export function GroupScreen({ user, groups, currentGroupId, onGroupAdded, onSwit
                   </div>
 
                   {/* メンバー一覧 */}
-                  {g.members?.map(m => (
-                    <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderTop: '1px solid #F7F8FA' }}>
-                      <Avatar user={m} size={32} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1D23', flex: 1 }}>{m.name}</span>
-                      {m.user_id === user.id && (
-                        <span style={{ fontSize: 10, color: '#9BA3AF', background: '#F0F2F5', borderRadius: 6, padding: '2px 6px' }}>あなた</span>
-                      )}
-                    </div>
-                  ))}
+                  {g.members?.map(m => {
+                    const isRemoving = removing?.groupId === g.id && removing?.userId === m.user_id
+                    return (
+                      <div key={m.user_id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderTop: '1px solid #F7F8FA' }}>
+                        <Avatar user={m} size={32} />
+                        <span style={{ fontSize: 13, fontWeight: 600, color: '#1A1D23', flex: 1 }}>{m.name}</span>
+                        {m.user_id === user.id
+                          ? <span style={{ fontSize: 10, color: '#9BA3AF', background: '#F0F2F5', borderRadius: 6, padding: '2px 6px' }}>あなた</span>
+                          : <button className="tap" onClick={() => handleRemoveMember(g.id, m.user_id, m.name)} disabled={isRemoving} style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid #FECACA', background: '#FFF5F5', fontSize: 11, fontWeight: 600, color: '#EF4444', opacity: isRemoving ? 0.5 : 1 }}>
+                              {isRemoving ? '...' : '削除'}
+                            </button>
+                        }
+                      </div>
+                    )
+                  })}
 
                   {/* 招待ボタン */}
                   <div style={{ padding: '12px 16px', borderTop: '1px solid #F7F8FA', background: '#F7F8FA' }}>
