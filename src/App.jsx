@@ -105,7 +105,7 @@ function HomeScreen({ user, onGroupJoined }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
       <div style={{ height: 'env(safe-area-inset-top)' }} />
       <div style={{ padding: '24px 24px 0', textAlign: 'center' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#1A1D23' }}>暇っち</div>
+        <img src="/logo.png" alt="暇っち" style={{ height: 28 }} />
       </div>
 
       {mode === 'home' && (

@@ -284,7 +284,7 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
       <div style={{ height: 'env(safe-area-inset-top)', background: '#fff' }} />
 
       <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ fontSize: 20, fontWeight: 800, color: '#1A1D23', letterSpacing: '-0.5px' }}>暇っち</div>
+        <img src="/logo.png" alt="暇っち" style={{ height: 28 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: '#4F86F7', background: '#EFF4FF', borderRadius: 20, padding: '4px 10px' }}>
             今月 {myCount}日空き
