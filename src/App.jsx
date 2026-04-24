@@ -278,7 +278,7 @@ export default function App() {
 
   if (screen === 'loading') return wrapper(
     <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ fontSize: 40 }}>📅</div>
+      <img src="/icon-192.png" alt="" style={{ width: 80, height: 80, borderRadius: 20 }} />
     </div>
   )
 
