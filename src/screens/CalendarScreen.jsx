@@ -306,7 +306,7 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
         </div>
       )}
 
-      <div className="scroll" style={{ flex: 1, overflowY: 'auto' }}>
+      <div className="scroll" style={{ flex: 1, overflowY: 'auto', minHeight: 0 }}>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px 10px' }}>
           <button className="tap" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()-1, 1))} style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid #E4E6EB', background: '#F7F8FA', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>

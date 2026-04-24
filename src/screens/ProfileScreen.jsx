@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Avatar } from '../components/Avatar'
+import { HelpScreen } from './HelpScreen'
 
 const EMOJIS = ['😊','😎','🌸','⚡','❄️','🌈','🎯','🦊','🐧','🎸','🌺','🍀','🦁','🐸','🦋','🎪']
 
 export function ProfileScreen({ user, groups, onUserUpdate, onLeaveGroup }) {
   const [editing, setEditing] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
   const [name, setName]       = useState(user.name)
   const [emoji, setEmoji]     = useState(user.emoji)
   const [saving, setSaving]   = useState(false)
@@ -39,6 +41,8 @@ export function ProfileScreen({ user, groups, onUserUpdate, onLeaveGroup }) {
     setLeavingId(null)
   }
 
+  if (showHelp) return <HelpScreen onClose={() => setShowHelp(false)} />
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F7F8FA' }}>
       <div style={{ height: 'env(safe-area-inset-top)', background: '#fff' }} />
@@ -57,7 +61,7 @@ export function ProfileScreen({ user, groups, onUserUpdate, onLeaveGroup }) {
         }
       </div>
 
-      <div className="scroll" style={{ flex: 1, overflowY: 'auto', padding: '16px' }}>
+      <div className="scroll" style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '16px' }}>
 
         {/* プロフィールカード */}
         <div style={{ background: '#fff', borderRadius: 16, padding: '20px', marginBottom: 12, border: '1px solid #ECEEF2' }}>
@@ -114,6 +118,21 @@ export function ProfileScreen({ user, groups, onUserUpdate, onLeaveGroup }) {
             </button>
           </div>
         </div>
+
+        {/* 使い方ガイド */}
+        <button className="tap" onClick={() => setShowHelp(true)} style={{
+          width: '100%', padding: '16px 20px', borderRadius: 16,
+          border: '1px solid #ECEEF2', background: '#fff',
+          display: 'flex', alignItems: 'center', gap: 12,
+          marginBottom: 12, cursor: 'pointer',
+        }}>
+          <span style={{ fontSize: 22 }}>📖</span>
+          <div style={{ textAlign: 'left', flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#1A1D23' }}>使い方ガイド</div>
+            <div style={{ fontSize: 12, color: '#9BA3AF', marginTop: 2 }}>ホーム画面への追加・復元コードの使い方など</div>
+          </div>
+          <span style={{ color: '#C8CDD8', fontSize: 18 }}>›</span>
+        </button>
 
         {/* 参加グループ */}
         <div style={{ background: '#fff', borderRadius: 16, overflow: 'hidden', border: '1px solid #ECEEF2', marginBottom: 12 }}>

@@ -254,6 +254,13 @@ export default function App() {
     }
   }
 
+  async function handleReloadGroups() {
+    const ids = getSavedGroupIds()
+    if (!ids.length) return
+    const loaded = await fetchGroups(ids)
+    setGroups(loaded)
+  }
+
   const currentGroup = groups.find(g => g.id === currentGroupId)
 
   const wrapper = children => (
@@ -303,6 +310,7 @@ export default function App() {
             currentGroupId={currentGroupId}
             onGroupAdded={handleGroupAdded}
             onSwitchGroup={id => { setCurrentGroupId(id); setTab('calendar') }}
+            onReloadGroups={handleReloadGroups}
           />
         )}
         {tab === 'profile' && (

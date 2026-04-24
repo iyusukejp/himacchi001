@@ -197,3 +197,20 @@ export async function leaveGroup(groupId, userId) {
   await supabase.from('members').delete()
     .eq('group_id', groupId).eq('user_id', userId)
 }
+
+// グループのメンバー色を重複なく再割り当て
+export async function reassignGroupColors(groupId) {
+  const { data: members, error } = await supabase
+    .from('members')
+    .select('user_id')
+    .eq('group_id', groupId)
+    .order('joined_at')
+  if (error) throw error
+
+  for (let i = 0; i < members.length; i++) {
+    await supabase.from('members')
+      .update({ color: COLORS[i % COLORS.length] })
+      .eq('group_id', groupId)
+      .eq('user_id', members[i].user_id)
+  }
+}

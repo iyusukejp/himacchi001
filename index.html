@@ -23,7 +23,12 @@
     #root { height: 100%; }
 
     .scroll::-webkit-scrollbar { display: none; }
-    .scroll { -ms-overflow-style: none; scrollbar-width: none; }
+    .scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+    }
 
     button, input { font-family: inherit; -webkit-appearance: none; cursor: pointer; }
     input { cursor: text; }

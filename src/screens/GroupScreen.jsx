@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Avatar } from '../components/Avatar'
-import { createGroup, joinByCode, leaveGroup } from '../db'
+import { createGroup, joinByCode, leaveGroup, reassignGroupColors } from '../db'
 import { saveGroupId } from '../user'
 
-export function GroupScreen({ user, groups, currentGroupId, onGroupAdded, onSwitchGroup }) {
+export function GroupScreen({ user, groups, currentGroupId, onGroupAdded, onSwitchGroup, onReloadGroups }) {
   const [mode, setMode]         = useState('list')
   const [groupName, setGroupName] = useState('')
   const [code, setCode]         = useState('')
@@ -11,9 +11,19 @@ export function GroupScreen({ user, groups, currentGroupId, onGroupAdded, onSwit
   const [error, setError]       = useState('')
   const [copied, setCopied]     = useState(null) // group id
   const [removing, setRemoving] = useState(null) // { groupId, userId }
+  const [recoloring, setRecoloring] = useState(null) // group id
 
   function getInviteUrl(group) {
     return `${window.location.origin}${window.location.pathname}?code=${group.invite_code}`
+  }
+
+  async function handleRecolor(groupId) {
+    setRecoloring(groupId)
+    try {
+      await reassignGroupColors(groupId)
+      onReloadGroups && onReloadGroups()
+    } catch { alert('色の更新に失敗しました') }
+    setRecoloring(null)
   }
 
   async function handleRemoveMember(groupId, memberId, memberName) {
@@ -80,7 +90,7 @@ export function GroupScreen({ user, groups, currentGroupId, onGroupAdded, onSwit
         )}
       </div>
 
-      <div className="scroll" style={{ flex: 1, overflowY: 'auto', padding: '14px 16px' }}>
+      <div className="scroll" style={{ flex: 1, overflowY: 'auto', minHeight: 0, padding: '14px 16px' }}>
 
         {/* グループ一覧 */}
         {mode === 'list' && (
@@ -100,6 +110,9 @@ export function GroupScreen({ user, groups, currentGroupId, onGroupAdded, onSwit
                       <div style={{ fontSize: 15, fontWeight: 700, color: '#1A1D23' }}>{g.name}</div>
                       <div style={{ fontSize: 12, color: '#9BA3AF', marginTop: 2 }}>{g.members?.length ?? 0}人のメンバー</div>
                     </div>
+                    <button className="tap" onClick={() => handleRecolor(g.id)} disabled={recoloring === g.id} style={{ padding: '5px 10px', borderRadius: 8, border: '1px solid #E4E6EB', background: '#F7F8FA', fontSize: 11, fontWeight: 600, color: '#6B7280', opacity: recoloring === g.id ? 0.5 : 1 }}>
+                      {recoloring === g.id ? '...' : '🎨色整理'}
+                    </button>
                     {isActive
                       ? <span style={{ fontSize: 11, fontWeight: 700, color: '#4F86F7', background: '#EFF4FF', borderRadius: 8, padding: '4px 8px' }}>表示中</span>
                       : <button className="tap" onClick={() => onSwitchGroup(g.id)} style={{ padding: '6px 12px', borderRadius: 8, border: '1px solid #E4E6EB', background: '#F7F8FA', fontSize: 12, fontWeight: 600, color: '#6B7280' }}>表示</button>
