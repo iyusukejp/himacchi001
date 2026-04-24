@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Avatar } from '../components/Avatar'
 import { BottomSheet } from '../components/BottomSheet'
 import { fetchAvailability, toggleAvailability, fetchEvents, addEvent, deleteEvent, supabase } from '../db'
@@ -176,6 +176,23 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
   const members       = group?.members ?? []
   const friendMembers = members.filter(m => m.user_id !== user.id)
 
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+
+  function handleTouchStart(e) {
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+  }
+
+  function handleTouchEnd(e) {
+    if (selDay) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    const dy = e.changedTouches[0].clientY - touchStartY.current
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+      setMonth(new Date(month.getFullYear(), month.getMonth() + (dx < 0 ? 1 : -1), 1))
+    }
+  }
+
   useEffect(() => {
     if (!group) return
     load(month.getFullYear(), month.getMonth())
@@ -280,7 +297,10 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
       <div style={{ height: 'env(safe-area-inset-top)', background: '#fff' }} />
 
       <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
