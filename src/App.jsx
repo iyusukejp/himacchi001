@@ -5,6 +5,7 @@ import { SetupScreen } from './screens/SetupScreen'
 import { CalendarScreen } from './screens/CalendarScreen'
 import { GroupScreen } from './screens/GroupScreen'
 import { ProfileScreen } from './screens/ProfileScreen'
+import { HelpScreen } from './screens/HelpScreen'
 import { BottomNav } from './components/BottomNav'
 
 // ─── 招待リンク確認画面 ───────────────────────────
@@ -163,6 +164,7 @@ export default function App() {
   const [groups, setGroups]         = useState([])
   const [currentGroupId, setCurrentGroupId] = useState(null)
   const [pendingCode, setPendingCode] = useState(null)
+  const [showHelp, setShowHelp]     = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -319,10 +321,12 @@ export default function App() {
             groups={groups}
             onUserUpdate={handleUserUpdate}
             onLeaveGroup={handleLeaveGroup}
+            onShowHelp={() => setShowHelp(true)}
           />
         )}
       </div>
       <BottomNav screen={tab} onChange={setTab} />
+      {showHelp && <HelpScreen onClose={() => setShowHelp(false)} />}
     </>
   )
 }

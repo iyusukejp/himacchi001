@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { Avatar } from '../components/Avatar'
-import { HelpScreen } from './HelpScreen'
 
 const EMOJIS = ['😊','😎','🌸','⚡','❄️','🌈','🎯','🦊','🐧','🎸','🌺','🍀','🦁','🐸','🦋','🎪']
 
-export function ProfileScreen({ user, groups, onUserUpdate, onLeaveGroup }) {
+export function ProfileScreen({ user, groups, onUserUpdate, onLeaveGroup, onShowHelp }) {
   const [editing, setEditing] = useState(false)
-  const [showHelp, setShowHelp] = useState(false)
   const [name, setName]       = useState(user.name)
   const [emoji, setEmoji]     = useState(user.emoji)
   const [saving, setSaving]   = useState(false)
@@ -40,8 +38,6 @@ export function ProfileScreen({ user, groups, onUserUpdate, onLeaveGroup }) {
     await onLeaveGroup(groupId)
     setLeavingId(null)
   }
-
-  if (showHelp) return <HelpScreen onClose={() => setShowHelp(false)} />
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F7F8FA' }}>
@@ -120,7 +116,7 @@ export function ProfileScreen({ user, groups, onUserUpdate, onLeaveGroup }) {
         </div>
 
         {/* 使い方ガイド */}
-        <button className="tap" onClick={() => setShowHelp(true)} style={{
+        <button className="tap" onClick={onShowHelp} style={{
           width: '100%', padding: '16px 20px', borderRadius: 16,
           border: '1px solid #ECEEF2', background: '#fff',
           display: 'flex', alignItems: 'center', gap: 12,

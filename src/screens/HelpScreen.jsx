@@ -21,7 +21,7 @@ export function HelpScreen({ onClose }) {
   )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#F7F8FA' }}>
+    <div style={{ position: 'absolute', inset: 0, zIndex: 200, display: 'flex', flexDirection: 'column', background: '#F7F8FA' }}>
       <div style={{ height: 'env(safe-area-inset-top)', background: '#fff' }} />
 
       <div style={{ padding: '14px 20px', background: '#fff', borderBottom: '1px solid #F0F2F5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
