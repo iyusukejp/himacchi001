@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { COLORS } from './constants'
 
 export const supabase = createClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -17,7 +18,7 @@ export async function fetchGroups(groupIds) {
   return data ?? []
 }
 
-// グループ作成
+// グループ作成（作成者は最初の色）
 export async function createGroup(name, user) {
   const { data: group, error: ge } = await supabase
     .from('groups')
@@ -26,12 +27,13 @@ export async function createGroup(name, user) {
     .single()
   if (ge) throw ge
 
+  const memberColor = COLORS[0]
   const { error: me } = await supabase
     .from('members')
-    .insert({ group_id: group.id, user_id: user.id, name: user.name, emoji: user.emoji, color: user.color })
+    .insert({ group_id: group.id, user_id: user.id, name: user.name, emoji: user.emoji, color: memberColor })
   if (me) throw me
 
-  return { ...group, members: [{ user_id: user.id, name: user.name, emoji: user.emoji, color: user.color }] }
+  return { ...group, members: [{ user_id: user.id, name: user.name, emoji: user.emoji, color: memberColor }] }
 }
 
 // 招待コードでグループをプレビュー
@@ -45,13 +47,28 @@ export async function previewGroup(code) {
   return data
 }
 
-// 招待コードでグループに参加
+// 招待コードでグループに参加（色が被らないよう割り当て）
 export async function joinByCode(code, user) {
   const group = await previewGroup(code)
 
+  // 既存メンバーを取得して色の重複を避ける
+  const { data: existingMembers } = await supabase
+    .from('members')
+    .select('user_id, color')
+    .eq('group_id', group.id)
+
+  const existing = existingMembers ?? []
+  const isAlreadyMember = existing.some(m => m.user_id === user.id)
+
+  let memberColor = user.color
+  if (!isAlreadyMember) {
+    const usedColors = existing.map(m => m.color)
+    memberColor = COLORS.find(c => !usedColors.includes(c)) ?? COLORS[existing.length % COLORS.length]
+  }
+
   await supabase
     .from('members')
-    .upsert({ group_id: group.id, user_id: user.id, name: user.name, emoji: user.emoji, color: user.color },
+    .upsert({ group_id: group.id, user_id: user.id, name: user.name, emoji: user.emoji, color: memberColor },
              { onConflict: 'group_id,user_id' })
 
   const { data, error } = await supabase
@@ -100,7 +117,40 @@ export async function toggleAvailability(groupId, userId, dateStr) {
   }
 }
 
-// ユーザープロフィールをSupabaseに保存（復元コード用）
+// 月の予定取得
+export async function fetchEvents(groupId, year, month) {
+  const from = `${year}-${String(month).padStart(2, '0')}-01`
+  const last = new Date(year, month, 0).getDate()
+  const to   = `${year}-${String(month).padStart(2, '0')}-${String(last).padStart(2, '0')}`
+
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('group_id', groupId)
+    .gte('date', from)
+    .lte('date', to)
+    .order('created_at')
+  if (error) throw error
+  return data ?? []
+}
+
+// 予定追加
+export async function addEvent(groupId, userId, dateStr, title) {
+  const { data, error } = await supabase
+    .from('events')
+    .insert({ group_id: groupId, created_by: userId, date: dateStr, title })
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
+// 予定削除
+export async function deleteEvent(eventId) {
+  await supabase.from('events').delete().eq('id', eventId)
+}
+
+// ユーザープロフィールをSupabaseに保存
 export async function saveUserProfile(user) {
   await supabase.from('users').upsert({
     id: user.id,

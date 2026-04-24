@@ -1,10 +1,7 @@
+import { COLORS } from './constants'
+
 const USER_KEY   = 'himacchi_user'
 const GROUPS_KEY = 'himacchi_groups'
-
-const COLORS = [
-  '#4F86F7','#F4645F','#E066A8','#F0A500',
-  '#3ABCA8','#8B5CF6','#10B981','#F97316',
-]
 
 function colorFromId(id) {
   const n = parseInt(id.replace(/-/g, '').slice(0, 8), 16)
