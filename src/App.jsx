@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { getUser, getSavedGroupIds, saveGroupId, updateUser, removeGroupId } from './user'
+import { getUser, getSavedGroupIds, saveGroupId, updateUser, removeGroupId, restoreUser } from './user'
 import { fetchGroups, joinByCode, previewGroup, saveUserProfile, updateMemberProfile, leaveGroup } from './db'
 import { SetupScreen } from './screens/SetupScreen'
 import { CalendarScreen } from './screens/CalendarScreen'
@@ -169,8 +169,15 @@ export default function App() {
     const code   = params.get('code')
     if (code) setPendingCode(code)
 
-    const u = getUser()
+    let u = getUser()
     if (!u) { setScreen('setup'); return }
+    // 旧ユーザーに復元コードがない場合は自動生成
+    if (!u.restoreCode) {
+      const rc = Math.random().toString(36).slice(2, 8).toUpperCase()
+      u = { ...u, restoreCode: rc }
+      restoreUser(u)
+      saveUserProfile(u)
+    }
     setUser(u)
     init(u, code)
   }, [])
