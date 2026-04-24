@@ -364,6 +364,7 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
               : hasOverlap ? '#EBF4FF'
               : isMeFree ? '#F0F9FF'
               : isHoliday ? '#FFF5F5'
+              : hasEvent ? '#FFFBEB'
               : '#F7F8FA'
 
             return (
@@ -394,10 +395,10 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
                   {friendsFree.slice(0, 3).map(m => (
                     <div key={m.user_id} style={{ width: 6, height: 6, borderRadius: '50%', background: m.color }} />
                   ))}
-                  {hasEvent && (
-                    <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#F59E0B' }} />
-                  )}
                 </div>
+                {hasEvent && (
+                  <div style={{ fontSize: 7, fontWeight: 700, color: '#D97706' }}>予定</div>
+                )}
               </div>
             )
           })}
@@ -413,7 +414,7 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
             <span style={{ fontSize: 10, color: '#6B7280' }}>祝日</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-            <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#F59E0B' }}/>
+            <div style={{ width: 22, height: 11, borderRadius: 3, background: '#FFFBEB', border: '1px solid #FDE68A' }}/>
             <span style={{ fontSize: 10, color: '#6B7280' }}>予定あり</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
