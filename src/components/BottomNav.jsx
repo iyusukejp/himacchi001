@@ -13,7 +13,7 @@ export function BottomNav({ screen, onChange }) {
       ),
     },
     {
-      id: 'group', label: 'グループ管理',
+      id: 'group', label: 'グループ',
       icon: active => (
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
           stroke={active ? '#4F86F7' : '#9BA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -21,6 +21,16 @@ export function BottomNav({ screen, onChange }) {
           <path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
           <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
           <path d="M21 21v-2a4 4 0 0 0-3-3.87"/>
+        </svg>
+      ),
+    },
+    {
+      id: 'profile', label: 'マイページ',
+      icon: active => (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+          stroke={active ? '#4F86F7' : '#9BA3AF'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="8" r="4"/>
+          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
         </svg>
       ),
     },

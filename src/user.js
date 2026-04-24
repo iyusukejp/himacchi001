@@ -1,5 +1,3 @@
-// ユーザー情報・グループIDをlocalStorageで管理
-
 const USER_KEY   = 'himacchi_user'
 const GROUPS_KEY = 'himacchi_groups'
 
@@ -13,6 +11,10 @@ function colorFromId(id) {
   return COLORS[n % COLORS.length]
 }
 
+function genRestoreCode() {
+  return Math.random().toString(36).slice(2, 8).toUpperCase()
+}
+
 export function getUser() {
   try {
     const raw = localStorage.getItem(USER_KEY)
@@ -22,9 +24,22 @@ export function getUser() {
 
 export function createUser(name, emoji) {
   const id = crypto.randomUUID()
-  const user = { id, name, emoji, color: colorFromId(id) }
+  const user = { id, name, emoji, color: colorFromId(id), restoreCode: genRestoreCode() }
   localStorage.setItem(USER_KEY, JSON.stringify(user))
   return user
+}
+
+export function updateUser(updates) {
+  const user = getUser()
+  if (!user) return null
+  const updated = { ...user, ...updates }
+  localStorage.setItem(USER_KEY, JSON.stringify(updated))
+  return updated
+}
+
+export function restoreUser(userData) {
+  localStorage.setItem(USER_KEY, JSON.stringify(userData))
+  return userData
 }
 
 export function getSavedGroupIds() {
@@ -39,4 +54,9 @@ export function saveGroupId(groupId) {
   if (!ids.includes(groupId)) {
     localStorage.setItem(GROUPS_KEY, JSON.stringify([...ids, groupId]))
   }
+}
+
+export function removeGroupId(groupId) {
+  const ids = getSavedGroupIds().filter(id => id !== groupId)
+  localStorage.setItem(GROUPS_KEY, JSON.stringify(ids))
 }

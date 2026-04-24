@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
-import { getUser, getSavedGroupIds, saveGroupId } from './user'
-import { fetchGroups, joinByCode, previewGroup } from './db'
+import { getUser, getSavedGroupIds, saveGroupId, updateUser, removeGroupId } from './user'
+import { fetchGroups, joinByCode, previewGroup, saveUserProfile, updateMemberProfile, leaveGroup } from './db'
 import { SetupScreen } from './screens/SetupScreen'
 import { CalendarScreen } from './screens/CalendarScreen'
 import { GroupScreen } from './screens/GroupScreen'
+import { ProfileScreen } from './screens/ProfileScreen'
 import { BottomNav } from './components/BottomNav'
 
 // ─── 招待リンク確認画面 ───────────────────────────
@@ -186,9 +187,16 @@ export default function App() {
     } catch { setScreen('home') }
   }
 
-  function handleSetupComplete(newUser) {
+  async function handleSetupComplete(newUser, restoredGroups = null) {
     setUser(newUser)
-    setScreen(pendingCode ? 'join' : 'home')
+    saveUserProfile(newUser)  // 復元コード保存（fire & forget）
+    if (restoredGroups !== null) {
+      setGroups(restoredGroups)
+      setCurrentGroupId(restoredGroups[0]?.id ?? null)
+      setScreen(pendingCode ? 'join' : restoredGroups.length ? 'main' : 'home')
+    } else {
+      setScreen(pendingCode ? 'join' : 'home')
+    }
   }
 
   async function handleGroupJoined(group) {
@@ -207,6 +215,36 @@ export default function App() {
       return exists ? prev.map(g => g.id === group.id ? group : g) : [...prev, group]
     })
     setCurrentGroupId(group.id)
+  }
+
+  async function handleUserUpdate(updatedUser) {
+    updateUser({ name: updatedUser.name, emoji: updatedUser.emoji })
+    setUser(updatedUser)
+    await Promise.all([
+      updateMemberProfile(updatedUser),
+      saveUserProfile(updatedUser),
+    ])
+    // グループのメンバー情報を再取得
+    const ids = getSavedGroupIds()
+    if (ids.length) {
+      const loaded = await fetchGroups(ids)
+      setGroups(loaded)
+    }
+  }
+
+  async function handleLeaveGroup(groupId) {
+    try {
+      await leaveGroup(groupId, user.id)
+      removeGroupId(groupId)
+      const remaining = groups.filter(g => g.id !== groupId)
+      setGroups(remaining)
+      if (currentGroupId === groupId) {
+        setCurrentGroupId(remaining[0]?.id ?? null)
+        if (!remaining.length) setScreen('home')
+      }
+    } catch {
+      alert('退出に失敗しました')
+    }
   }
 
   const currentGroup = groups.find(g => g.id === currentGroupId)
@@ -243,20 +281,29 @@ export default function App() {
   return wrapper(
     <>
       <div style={{ flex: 1, overflow: 'hidden' }}>
-        {tab === 'calendar' ? (
+        {tab === 'calendar' && (
           <CalendarScreen
             user={user}
             group={currentGroup}
             groups={groups}
             onSwitchGroup={setCurrentGroupId}
           />
-        ) : (
+        )}
+        {tab === 'group' && (
           <GroupScreen
             user={user}
             groups={groups}
             currentGroupId={currentGroupId}
             onGroupAdded={handleGroupAdded}
             onSwitchGroup={id => { setCurrentGroupId(id); setTab('calendar') }}
+          />
+        )}
+        {tab === 'profile' && (
+          <ProfileScreen
+            user={user}
+            groups={groups}
+            onUserUpdate={handleUserUpdate}
+            onLeaveGroup={handleLeaveGroup}
           />
         )}
       </div>

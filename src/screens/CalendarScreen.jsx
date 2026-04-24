@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Avatar } from '../components/Avatar'
 import { BottomSheet } from '../components/BottomSheet'
 import { fetchAvailability, toggleAvailability, supabase } from '../db'
+import { HOLIDAYS } from '../holidays'
 
 const TODAY = new Date()
 const MN = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月']
@@ -23,9 +24,10 @@ function buildDays(y, m) {
 
 // ─── 日付詳細シート ───────────────────────────────
 function DaySheet({ date, av, user, members, onClose, onToggle }) {
-  const dstr       = toDateStr(date)
+  const dstr        = toDateStr(date)
   const freeMembers = members.filter(m => av[m.user_id]?.has(dstr))
   const isMeFree    = av[user.id]?.has(dstr)
+  const holidayName = HOLIDAYS[dstr]
   const [loading, setLoading] = useState(false)
 
   return (
@@ -35,8 +37,13 @@ function DaySheet({ date, av, user, members, onClose, onToggle }) {
           <div style={{ fontSize: 28, fontWeight: 800, color: '#1A1D23', letterSpacing: '-1px' }}>
             {date.getMonth()+1}月{date.getDate()}日
           </div>
-          <div style={{ fontSize: 13, color: '#9BA3AF', marginTop: 3 }}>
+          <div style={{ fontSize: 13, color: '#9BA3AF', marginTop: 3, display: 'flex', alignItems: 'center', gap: 8 }}>
             {DOW_NAMES[date.getDay()]}曜日
+            {holidayName && (
+              <span style={{ fontSize: 12, fontWeight: 700, color: '#EF4444', background: '#FEF2F2', borderRadius: 6, padding: '2px 8px' }}>
+                🎌 {holidayName}
+              </span>
+            )}
           </div>
         </div>
 
@@ -66,11 +73,7 @@ function DaySheet({ date, av, user, members, onClose, onToggle }) {
 
         <button
           className="tap"
-          onClick={async () => {
-            setLoading(true)
-            await onToggle(date)
-            onClose()
-          }}
+          onClick={async () => { setLoading(true); await onToggle(date); onClose() }}
           disabled={loading}
           style={{
             width: '100%', padding: '15px', borderRadius: 14, border: 'none',
@@ -93,10 +96,9 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
   const [selDay, setSelDay] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  const members      = group?.members ?? []
+  const members       = group?.members ?? []
   const friendMembers = members.filter(m => m.user_id !== user.id)
 
-  // 月が変わったら空き日を再取得
   useEffect(() => {
     if (!group) return
     load(month.getFullYear(), month.getMonth())
@@ -116,7 +118,6 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
     setLoading(false)
   }
 
-  // リアルタイム購読
   useEffect(() => {
     if (!group) return
     const ch = supabase
@@ -144,7 +145,6 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
     return () => supabase.removeChannel(ch)
   }, [group?.id, month])
 
-  // 楽観的トグル
   async function handleToggle(date) {
     const dstr = toDateStr(date)
     setAv(prev => {
@@ -166,7 +166,6 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
   const days   = buildDays(month.getFullYear(), month.getMonth())
   const myCount = Array.from(av[user.id] ?? []).filter(d => d.startsWith(ym)).length
 
-  // おすすめ日（2人以上空き）
   const dim  = new Date(month.getFullYear(), month.getMonth()+1, 0).getDate()
   const best = []
   for (let d = 1; d <= dim; d++) {
@@ -179,7 +178,6 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#fff' }}>
       <div style={{ height: 'env(safe-area-inset-top)', background: '#fff' }} />
 
-      {/* ヘッダー */}
       <div style={{ padding: '14px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{ fontSize: 20, fontWeight: 800, color: '#1A1D23', letterSpacing: '-0.5px' }}>暇っち</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -190,7 +188,6 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
         </div>
       </div>
 
-      {/* グループ切り替えチップ */}
       {groups.length > 1 && (
         <div className="scroll" style={{ display: 'flex', gap: 8, padding: '0 20px 10px', overflowX: 'auto', flexShrink: 0 }}>
           {groups.map(g => (
@@ -204,10 +201,8 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
         </div>
       )}
 
-      {/* スクロール領域 */}
       <div className="scroll" style={{ flex: 1, overflowY: 'auto' }}>
 
-        {/* 月ナビ */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 20px 10px' }}>
           <button className="tap" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()-1, 1))} style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid #E4E6EB', background: '#F7F8FA', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>‹</button>
           <div style={{ fontSize: 17, fontWeight: 800, color: '#1A1D23' }}>
@@ -216,38 +211,59 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
           <button className="tap" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth()+1, 1))} style={{ width: 36, height: 36, borderRadius: 10, border: '1px solid #E4E6EB', background: '#F7F8FA', fontSize: 18, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>›</button>
         </div>
 
-        {/* 曜日 */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, padding: '0 12px 3px' }}>
           {DN.map((d, i) => (
             <div key={d} style={{ textAlign: 'center', fontSize: 11, fontWeight: 700, padding: '2px 0', color: i===0?'#EF4444':i===6?'#3B82F6':'#9BA3AF' }}>{d}</div>
           ))}
         </div>
 
-        {/* グリッド */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 3, padding: '0 12px' }}>
           {days.map((d, i) => {
-            const dstr = toDateStr(d.date)
+            const dstr        = toDateStr(d.date)
             const isMeFree    = av[user.id]?.has(dstr)
             const friendsFree = friendMembers.filter(m => av[m.user_id]?.has(dstr))
             const hasOverlap  = isMeFree && friendsFree.length > 0
             const dow         = d.date.getDay()
             const isToday     = dstr === todStr
+            const holidayName = d.in ? HOLIDAYS[dstr] : null
+            const isHoliday   = !!holidayName
+
+            // 祝日は日曜扱いで赤に
+            const textColor = isToday ? '#4F86F7'
+              : !d.in ? '#C8CDD8'
+              : (dow === 0 || isHoliday) ? '#EF4444'
+              : dow === 6 ? '#3B82F6'
+              : '#1A1D23'
+
+            const bgColor = !d.in ? 'transparent'
+              : hasOverlap ? '#EBF4FF'
+              : isMeFree ? '#F0F9FF'
+              : isHoliday ? '#FFF5F5'
+              : '#F7F8FA'
 
             return (
               <div key={i} className={d.in ? 'tap' : ''} onClick={() => d.in && setSelDay(d.date)} style={{
-                aspectRatio: '1', padding: '5px 4px',
-                background: !d.in ? 'transparent' : hasOverlap ? '#EBF4FF' : isMeFree ? '#F0F9FF' : '#F7F8FA',
+                aspectRatio: '1', padding: '4px 3px',
+                background: bgColor,
                 border: isToday ? '2px solid #4F86F7' : '1px solid #ECEEF2',
                 borderRadius: 10, opacity: d.in ? 1 : 0.3,
                 display: 'flex', flexDirection: 'column',
                 cursor: d.in ? 'pointer' : 'default',
+                overflow: 'hidden',
               }}>
-                <div style={{
-                  fontSize: 13, fontWeight: isToday ? 800 : 500, lineHeight: 1,
-                  color: isToday ? '#4F86F7' : !d.in ? '#C8CDD8' : dow===0 ? '#EF4444' : dow===6 ? '#3B82F6' : '#1A1D23',
-                }}>{d.date.getDate()}</div>
-                {isMeFree && d.in && (
+                <div style={{ fontSize: 13, fontWeight: isToday ? 800 : 500, lineHeight: 1, color: textColor }}>
+                  {d.date.getDate()}
+                </div>
+                {isHoliday && d.in && (
+                  <div style={{ fontSize: 5.5, color: '#EF4444', fontWeight: 700, lineHeight: 1.1, marginTop: 1, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+                    {holidayName}
+                  </div>
+                )}
+                {isMeFree && d.in && !isHoliday && (
                   <div style={{ fontSize: 8, fontWeight: 700, color: hasOverlap ? '#4F86F7' : '#93C5FD', marginTop: 1 }}>空き</div>
+                )}
+                {isMeFree && d.in && isHoliday && (
+                  <div style={{ fontSize: 7, fontWeight: 700, color: hasOverlap ? '#4F86F7' : '#93C5FD' }}>空き</div>
                 )}
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2, marginTop: 'auto' }}>
                   {friendsFree.slice(0, 4).map(m => (
@@ -259,11 +275,14 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
           })}
         </div>
 
-        {/* 凡例 */}
         <div style={{ display: 'flex', gap: 12, margin: '12px 12px 0', padding: '10px 12px', background: '#F7F8FA', borderRadius: 10, flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             <div style={{ width: 22, height: 11, borderRadius: 3, background: '#EBF4FF', border: '1px solid #BFDBFE' }}/>
             <span style={{ fontSize: 10, color: '#6B7280' }}>友達と重なる日</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+            <div style={{ width: 22, height: 11, borderRadius: 3, background: '#FFF5F5', border: '1px solid #FECACA' }}/>
+            <span style={{ fontSize: 10, color: '#6B7280' }}>祝日</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
             {friendMembers.slice(0,4).map(m => (
@@ -273,38 +292,42 @@ export function CalendarScreen({ user, group, groups, onSwitchGroup }) {
           </div>
         </div>
 
-        {/* おすすめ日 */}
         {best.length > 0 && (
           <div style={{ padding: '16px 16px 12px' }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: '#B0B4BE', letterSpacing: '0.8px', marginBottom: 10 }}>
               みんなの空き日
             </div>
             <div className="scroll" style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-              {best.slice(0, 10).map(({ d, dstr, free }) => (
-                <div key={dstr} className="tap"
-                  onClick={() => setSelDay(new Date(month.getFullYear(), month.getMonth(), d))}
-                  style={{
-                    flexShrink: 0, padding: '10px 14px', borderRadius: 13,
-                    background: '#fff', border: '1px solid #ECEEF2',
-                    display: 'flex', flexDirection: 'column', gap: 6, minWidth: 72,
-                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-                  }}
-                >
-                  <div style={{ fontSize: 14, fontWeight: 800, color: '#1A1D23' }}>
-                    {month.getMonth()+1}/{d}
+              {best.slice(0, 10).map(({ d, dstr, free }) => {
+                const hName = HOLIDAYS[dstr]
+                return (
+                  <div key={dstr} className="tap"
+                    onClick={() => setSelDay(new Date(month.getFullYear(), month.getMonth(), d))}
+                    style={{
+                      flexShrink: 0, padding: '10px 14px', borderRadius: 13,
+                      background: hName ? '#FFF5F5' : '#fff',
+                      border: `1px solid ${hName ? '#FECACA' : '#ECEEF2'}`,
+                      display: 'flex', flexDirection: 'column', gap: 4, minWidth: 72,
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <div style={{ fontSize: 14, fontWeight: 800, color: hName ? '#EF4444' : '#1A1D23' }}>
+                      {month.getMonth()+1}/{d}
+                    </div>
+                    {hName && <div style={{ fontSize: 9, color: '#EF4444', fontWeight: 600 }}>{hName}</div>}
+                    <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
+                      {free.map(m => (
+                        <div key={m.user_id} style={{
+                          width: 20, height: 20, borderRadius: '50%',
+                          background: m.color + '20', border: `1.5px solid ${m.color}60`,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10,
+                        }}>{m.emoji}</div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: 10, fontWeight: 700, color: '#9BA3AF' }}>{free.length}人◎</div>
                   </div>
-                  <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-                    {free.map(m => (
-                      <div key={m.user_id} style={{
-                        width: 20, height: 20, borderRadius: '50%',
-                        background: m.color + '20', border: `1.5px solid ${m.color}60`,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10,
-                      }}>{m.emoji}</div>
-                    ))}
-                  </div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: '#9BA3AF' }}>{free.length}人◎</div>
-                </div>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
